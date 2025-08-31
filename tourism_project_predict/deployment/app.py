@@ -3,13 +3,13 @@ import pandas as pd
 from huggingface_hub import hf_hub_download
 import joblib
 
-# Download the model from the Model Hub
+# Download the model from the Model space
 model_path = hf_hub_download(repo_id="rishabhsinghjk/Tourism-package-predict-model", filename="best_tour_pkg_predct_v1.joblib")
 
 # Load the model
 model = joblib.load(model_path)
 
-# Streamlit UI for Customer Churn Prediction
+# Streamlit UI for Tourism package Customer Acceptance Prediction
 st.title("Tourism package Customer Acceptance Prediction App")
 st.write("The Tourism package Customer Acceptance Prediction App is an internal tool for tourism comapny employees to predicts whether customers will accept the pitched package based on their details.")
 st.write("Kindly enter the customer details to check whether they are likely to accept.")
@@ -34,7 +34,7 @@ PitchSatisfactionScore = st.selectbox("Pitch Satisfaction Score by  customer", [
 OwnCar = st.selectbox("Customer owns Car?", ["Yes", "No"])
 Designation = st.selectbox("Designation", ["Executive", "Manager", "Senior Manager", "AVP", "VP"])
 
-   
+
 
 # Convert categorical inputs to match model training
 input_data = pd.DataFrame([{
@@ -51,7 +51,7 @@ input_data = pd.DataFrame([{
     'Gender': Gender,
     'ProductPitched': ProductPitched,
     'PreferredPropertyStar': PreferredPropertyStar,
-    'MaritalStatus': MaritalStatus,       
+    'MaritalStatus': MaritalStatus,
     'Passport': 1 if Passport == "Yes" else 0,
     'PitchSatisfactionScore': PitchSatisfactionScore,
     'OwnCar': 1 if OwnCar == "Yes" else 0,
@@ -59,7 +59,7 @@ input_data = pd.DataFrame([{
 }])
 
 # Set the classification threshold
-classification_threshold = 0.45
+classification_threshold = 0.55
 
 # Predict button
 if st.button("Predict"):

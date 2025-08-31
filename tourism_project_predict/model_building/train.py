@@ -16,11 +16,13 @@ from huggingface_hub import login, HfApi, create_repo
 from huggingface_hub.utils import RepositoryNotFoundError, HfHubHTTPError
 import mlflow
 
+#Setting the tracking URL and experiment name in mlflow
 mlflow.set_tracking_uri("http://localhost:5050")
 mlflow.set_experiment("MLOps_experiment_tour_prod")
 
 api = HfApi()
 
+#loading the train and test sets from hugging face dataset space
 
 Xtrain_path = "hf://datasets/rishabhsinghjk/Tourism-package-predict-dataspace/Xtrain.csv"
 Xtest_path = "hf://datasets/rishabhsinghjk/Tourism-package-predict-dataspace/Xtest.csv"
@@ -36,27 +38,27 @@ ytest = pd.read_csv(ytest_path)
 # List of numerical features in the dataset
 numeric_features = [
     'Age',                      # Customer's age
-    'DurationOfPitch',          # Number of years the customer has been with the bank
-    'NumberOfPersonVisiting',   # Customer’s account balance
-    'NumberOfFollowups',        # Number of products the customer has with the bank
-    'NumberOfTrips',            # Whether the customer has a credit card (binary: 0 or 1)
-    'NumberOfChildrenVisiting', # Whether the customer is an active member (binary: 0 or 1)
-    'MonthlyIncome'             # Customer’s estimated salary
+    'DurationOfPitch',          # The time duration for which the product was explained to the customer
+    'NumberOfPersonVisiting',   # Expected number of persons visiting along with customer
+    'NumberOfFollowups',        # Number of followups done with the customer after the pitch
+    'NumberOfTrips',            # Average number of trips done by customer per year
+    'NumberOfChildrenVisiting', # Number of children below age 5 accompanying the customer
+    'MonthlyIncome'             # Customer’s estimated monthly salary
 ]
 
 # List of categorical features in the dataset
 categorical_features = [
-    'TypeofContact',         # Country where the customer resides
-    'CityTier',
-    'Occupation',
-    'Gender',
-    'ProductPitched',
-    'PreferredPropertyStar',
-    'MaritalStatus',
-    'Passport',
-    'PitchSatisfactionScore',
-    'OwnCar',
-    'Designation'
+    'TypeofContact',          # Country where the customer resides
+    'CityTier',               # City tier 1, 2 or 3
+    'Occupation',             # Source of income of customer
+    'Gender',                 # Gender of customer
+    'ProductPitched',         # The category of the product piched to the customer
+    'PreferredPropertyStar',  # The property rating preference of the customer
+    'MaritalStatus',          # Marital status of customer
+    'Passport',               # Does customer has passport or not
+    'PitchSatisfactionScore', # The satisfaction rating of customer for the piched product
+    'OwnCar',                 # Does the customer owns a car
+    'Designation'             # What is the designation of customer
 ]
 
 
@@ -111,7 +113,7 @@ with mlflow.start_run():
     # Store and evaluate the best model
     best_model = grid_search.best_estimator_
 
-    classification_threshold = 0.45
+    classification_threshold = 0.55
 
     y_pred_train_proba = best_model.predict_proba(Xtrain)[:, 1]
     y_pred_train = (y_pred_train_proba >= classification_threshold).astype(int)
@@ -134,19 +136,19 @@ with mlflow.start_run():
         "test_f1-score": test_report['1']['f1-score']
     })
 
-    # Save the model locally
+    # Saving the model locally first
     model_path = "best_tour_pkg_predct_v1.joblib"
     joblib.dump(best_model, model_path)
 
-    # Log the model artifact
+    # Logging the model artifact
     mlflow.log_artifact(model_path, artifact_path="model")
     print(f"Model saved as artifact at: {model_path}")
 
-    # Upload to Hugging Face
+    # defining repo model to Hugging Face
     repo_id = "rishabhsinghjk/Tourism-package-predict-model"
     repo_type = "model"
 
-    # Step 1: Check if the space exists
+    # Step 1: Check if the model space exists
     try:
         api.repo_info(repo_id=repo_id, repo_type=repo_type)
         print(f"Space '{repo_id}' already exists. Using it.")
@@ -155,7 +157,8 @@ with mlflow.start_run():
         create_repo(repo_id=repo_id, repo_type=repo_type, private=False)
         print(f"Space '{repo_id}' created.")
 
-    # create_repo("churn-model", repo_type="model", private=False)
+    # Step 2: Upload the model to HF model space just created
+    print(f"Uploading model to space '{repo_id}'...")
     api.upload_file(
         path_or_fileobj="best_tour_pkg_predct_v1.joblib",
         path_in_repo="best_tour_pkg_predct_v1.joblib",

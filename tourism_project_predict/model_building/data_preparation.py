@@ -14,6 +14,17 @@ DATASET_PATH = "hf://datasets/rishabhsinghjk/Tourism-package-predict-dataspace/t
 dataset = pd.read_csv(DATASET_PATH)
 print("Dataset loaded successfully.")
 
+#Check for duplicate rows, remove them if present
+duplicate_count = dataset.duplicated().sum()
+if duplicate_count > 0:
+    dataset.drop_duplicates(inplace=True)
+    print(f"{duplicate_count} duplicate rows removed.")
+else:
+    print("No duplicate rows found.")
+
+#Dropping CustomerID and Unnamed: 0 columns as they are row identifiers and are not needed in this use-case
+dataset.drop(["CustomerID"], axis=1, inplace=True)
+dataset.drop(["Unnamed: 0"], axis=1, inplace=True)
 
 
 # Define the target feature for classification
@@ -22,27 +33,27 @@ target = 'ProdTaken'
 # List of numerical features in the dataset
 numeric_features = [
     'Age',                      # Customer's age
-    'DurationOfPitch',          # Number of years the customer has been with the bank
-    'NumberOfPersonVisiting',   # Customer’s account balance
-    'NumberOfFollowups',        # Number of products the customer has with the bank
-    'NumberOfTrips',            # Whether the customer has a credit card (binary: 0 or 1)
-    'NumberOfChildrenVisiting', # Whether the customer is an active member (binary: 0 or 1)
-    'MonthlyIncome'             # Customer’s estimated salary
+    'DurationOfPitch',          # The time duration for which the product was explained to the customer
+    'NumberOfPersonVisiting',   # Expected number of persons visiting along with customer
+    'NumberOfFollowups',        # Number of followups done with the customer after the pitch
+    'NumberOfTrips',            # Average number of trips done by customer per year
+    'NumberOfChildrenVisiting', # Number of children below age 5 accompanying the customer
+    'MonthlyIncome'             # Customer’s estimated monthly salary
 ]
 
 # List of categorical features in the dataset
 categorical_features = [
-    'TypeofContact',         # Country where the customer resides
-    'CityTier',
-    'Occupation',
-    'Gender',
-    'ProductPitched',
-    'PreferredPropertyStar',
-    'MaritalStatus',
-    'Passport',
-    'PitchSatisfactionScore',
-    'OwnCar',
-    'Designation'
+    'TypeofContact',          # Country where the customer resides
+    'CityTier',               # City tier 1, 2 or 3
+    'Occupation',             # Source of income of customer
+    'Gender',                 # Gender of customer
+    'ProductPitched',         # The category of the product piched to the customer
+    'PreferredPropertyStar',  # The property rating preference of the customer
+    'MaritalStatus',          # Marital status of customer
+    'Passport',               # Does customer has passport or not
+    'PitchSatisfactionScore', # The satisfaction rating of customer for the piched product
+    'OwnCar',                 # Does the customer owns a car
+    'Designation'             # What is the designation of customer
 ]
 
 # Define predictor matrix (X) using selected numeric and categorical features
@@ -60,6 +71,7 @@ Xtrain, Xtest, ytrain, ytest = train_test_split(
     random_state=42    # Ensures reproducibility by setting a fixed random seed
 )
 
+#Creating the train and test csvs
 Xtrain.to_csv("Xtrain.csv",index=False)
 Xtest.to_csv("Xtest.csv",index=False)
 ytrain.to_csv("ytrain.csv",index=False)
@@ -68,6 +80,7 @@ ytest.to_csv("ytest.csv",index=False)
 
 files = ["Xtrain.csv","Xtest.csv","ytrain.csv","ytest.csv"]
 
+#Uploading the train and test files to dataset space
 for file_path in files:
     api.upload_file(
         path_or_fileobj=file_path,

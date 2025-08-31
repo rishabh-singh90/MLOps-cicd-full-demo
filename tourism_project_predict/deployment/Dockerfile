@@ -1,4 +1,4 @@
-# Use a minimal base image with Python 3.9 installed
+# Use a minimal base image with Python 3.10 installed
 FROM python:3.10
 
 # Set the working directory inside the container to /app
@@ -19,5 +19,5 @@ WORKDIR $HOME/app
 
 COPY --chown=user . $HOME/app
 
-# Define the command to run the Streamlit app on port "8500" and make it accessible externally
-CMD ["streamlit", "run", "app.py", "--server.port=8500", "--server.address=0.0.0.0", "--server.enableXsrfProtection=false"]
+# Define the command to run the Streamlit app on port "8505" and make it accessible externally
+CMD ["streamlit", "run", "app.py", "--server.port=8505", "--server.address=0.0.0.0", "--server.enableXsrfProtection=false"]
